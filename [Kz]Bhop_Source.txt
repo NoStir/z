@@ -1,0 +1,132 @@
+/You can also use same code for other source games. hf
+//BYPASS LILAC, STAC,
+//NOTE RESET THESE VALUES WHEN REJOIN DIFFERENT SERVER AS YOU NEED TO COUNT FROM 0!!!
+static int jumps = 0;
+static double amount = 0;
+static int base = 0;
+static int pre_scroll = 0;
+static int post_scroll = 0;
+static double delay = 0;
+static int old_tick = 0;
+static int ground_tick = 0;
+static int delay_ticks = 0;
+static int perf_jumps = 0;
+static bool perf_on_next = false;
+static bool jump_next = false;
+double hitchance = .50;
+void autojump()
+{
+
+centity* local_player = game::interfaces::ent_list->get_centity(game::interfaces::engine->get_local_id());
+//new exp
+if (sets->misc.kz_jump_reset) kz_reset();
+
+
+
+if (local_player->get_move_type() == movetype_ladder local_player->get_move_type() == movetype_noclip)
+return;
+
+//new exp
+if (!local_player !local_player->valid())
+return;
+
+
+// Check if the player is on a ladder, using noclip, or in water
+if (local_player->get_move_type() == movetype_ladder
+local_player->get_move_type() == movetype_noclip) {
+return;
+}
+bool inWater = (local_player->get_flags() & FL_INWATER); // Assuming is_in_water() is a valid method
+if (inWater && (global::cmd->buttons & IN_JUMP)) {
+// Logic to make the player float in water
+// Adjust the player's velocity or position to simulate floating
+// Example: local_player->set_velocity(Vector(0, 0, some_positive_value));
+return; // Return early to skip auto-jump logic
+}
+int flags = local_player->get_flags();
+bool onground = (flags & FL_ONGROUND) != 0;
+Vector velocity = local_player->get_velocity();
+
+if (global::cmd->buttons & IN_JUMP) {
+/*
+//new experiment
+if (jump_next) {
+// Simulate a jump input
+global::cmd->buttons = IN_JUMP;
+jump_next = false;
+}
+else {
+// Check if the local player is on a ladder
+if (local_player->get_move_type() == movetype_ladder) {
+jump_next = true;
+}
+}
+//new experiment
+*/
+if (onground) {
+base = rand() % 8 + 5; // Randomize from 5 to 12
+//base = rand() % 6 + 7; //7 to 12
+
+if (ground_tick < 2) {
+amount = static_cast(rand() % 100) / 100.0; // Random fraction between 0 and 1
+}
+pre_scroll = static_cast(base * amount);
+post_scroll = base - pre_scroll;
+ground_tick = global::cmd->command_number - old_tick;
+// Change the 0.55 to your desired chance percentage. Example: 0.75 for 75%
+delay_ticks = amount > hitchance ? 1 : (rand() % 2 + 3);
+
+if (ground_tick >= delay_ticks perf_on_next) {
+global::cmd->buttons = IN_JUMP;
+jumps++;
+old_tick = global::cmd->command_number;
+if (delay_ticks < 2 perf_on_next) {
+perf_jumps = perf_jumps + 1;
+perf_on_next = false;
+}
+
+}
+else {
+global::cmd->buttons &= ~IN_JUMP;
+}
+}
+else {
+// Air control logic
+if (velocity.z > 0 && pre_scroll > 0) {
+if (delay == 0) {
+delay = global::curtime + static_cast(rand()) / RAND_MAX * 0.05;
+
+}
+else if (global::curtime > delay) {
+global::cmd->buttons = IN_JUMP;
+pre_scroll--;
+delay = global::curtime + static_cast(rand()) / RAND_MAX * 0.05;
+
+}
+else {
+global::cmd->buttons &= ~IN_JUMP;
+}
+}
+else if (velocity.z < 0 && post_scroll > 0) {
+if (delay == 0) {
+delay = global::curtime + static_cast(rand()) / RAND_MAX * 0.05;
+}
+else if (global::curtime > delay) {
+global::cmd->buttons = IN_JUMP;
+post_scroll--;
+delay = global::curtime + static_cast(rand()) / RAND_MAX * 0.05;
+}
+else {
+global::cmd->buttons &= ~IN_JUMP;
+}
+}
+else if (pre_scroll == 0 && post_scroll == 0) {
+delay = 0;
+global::cmd->buttons &= ~IN_JUMP;
+}
+old_tick = global::cmd->command_number;
+}
+}
+
+
+}
